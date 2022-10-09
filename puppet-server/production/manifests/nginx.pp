@@ -2,6 +2,9 @@ node puppetclient {
   class{'nginx':
       manage_repo => true,
       package_source => 'nginx-stable',
+      log_format     => {
+        'custom' => '$time_local - $scheme - "$remote_addr" [$request_time]'
+      },
   }
 
   nginx::resource::server{'domain.com':
@@ -24,4 +27,11 @@ node puppetclient {
     server => 'domain.com'
   }
 
+  nginx::resource::server { 'proxy-forward.domain.com' :
+    ensure      => 'present',
+    listen_port => 8000,
+    proxy       => 'https://$http_host$request_uri',
+    resolver    => ['8.8.8.8'],
+    format_log  => 'custom',
+  }
 }
