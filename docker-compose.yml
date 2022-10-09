@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  puppet-server:
+    build:
+      context: .
+    container_name: netcentric-ubuntu
+    volumes:
+      - ./source-server:/home/user
+      - ./puppet-server/puppet.conf:/etc/puppetlabs/puppet/puppet.conf
+      - ./puppet-server/signed/puppetclient.pem:/etc/puppetlabs/puppet/ssl/ca/signed/puppetclient.pem
+      - ./puppet-server/signed/puppetmaster.pem:/etc/puppetlabs/puppet/ssl/ca/signed/puppetmaster.pem
+    restart: on-failure
+    command: bash -c "sh /home/user/entrypoint.sh"
+    environment:
+      - PATH=/opt/puppetlabs/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    ports:
+      - "8140:8140"
+    extra_hosts:
+      - "puppetmaster:155.20.0.3"
+      - "puppet:155.20.0.3"
+      - "puppetclient:155.20.0.4"
+    networks:
+      static-network:
+        ipv4_address: 155.20.0.3
+
+  puppet-client:
+    build:
+      context: .
+    container_name: netcentric-ubuntu-client
+    restart: on-failure
+    volumes:
+      - ./source-client:/home/user
+      - ./puppet-client/puppet.conf:/etc/puppetlabs/puppet/puppet.conf
+    environment:
+      - PATH=/opt/puppetlabs/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    extra_hosts:
+      - "puppetmaster:155.20.0.3"
+      - "puppet:155.20.0.3"
+      - "puppetclient:155.20.0.4"
+    networks:
+      static-network:
+        ipv4_address: 155.20.0.4
+
+networks:
+  static-network:
+    ipam:
+      config:
+        - subnet: 155.20.0.0/16
