@@ -14,7 +14,7 @@ node puppetclient {
     ssl_port              => 443,
     ssl_cert              => '/home/user/localhost.crt',
     ssl_key               => '/home/user/localhost.key',
-    proxy                 => 'http://10.10.10.10',
+    proxy                 => 'http://health-check',
     access_log            => '/var/log/nginx/puppet_access.log',
     error_log             => '/var/log/nginx/puppet_error.log'
   }
@@ -33,5 +33,19 @@ node puppetclient {
     proxy       => 'https://$http_host$request_uri',
     resolver    => ['8.8.8.8'],
     format_log  => 'custom',
+  }
+
+  nginx::resource::upstream { 'health-check':
+    ensure       =>  present,
+    members => {
+      'http://10.10.10.10' => {
+        server       => '10.10.10.10',
+      },
+      'http://20.20.20.20' => {
+        server       => '20.20.20.20',
+        max_fails    => 3,
+        fail_timeout => '60s',
+      }
+    },
   }
 }
