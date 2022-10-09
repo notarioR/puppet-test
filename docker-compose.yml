@@ -10,6 +10,7 @@ services:
       - ./puppet-server/puppet.conf:/etc/puppetlabs/puppet/puppet.conf
       - ./puppet-server/signed/puppetclient.pem:/etc/puppetlabs/puppet/ssl/ca/signed/puppetclient.pem
       - ./puppet-server/signed/puppetmaster.pem:/etc/puppetlabs/puppet/ssl/ca/signed/puppetmaster.pem
+      - ./puppet-server/production:/etc/puppetlabs/code/environments/production
     restart: on-failure
     command: bash -c "sh /home/user/entrypoint.sh"
     environment:
