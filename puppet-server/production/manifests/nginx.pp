@@ -1,19 +1,20 @@
 node puppetclient {
-  class{'nginx':
-      manage_repo => true,
-      package_source => 'nginx-stable',
-      log_format     => {
-        'custom' => '$time_local - $scheme - "$remote_addr" [$request_time]'
-      },
+
+  class{ 'nginx':
+    manage_repo => true,
+    package_source => 'nginx-stable',
+    log_format     => {
+      'custom' => '$time_local - $scheme - "$remote_addr" [$request_time]'
+    },
   }
 
-  nginx::resource::server{'domain.com':
+  nginx::resource::server{ 'domain.com':
     ensure                => present,
     listen_port           => 443,
     ssl                   => true,
     ssl_port              => 443,
-    ssl_cert              => '/home/user/localhost.crt',
-    ssl_key               => '/home/user/localhost.key',
+    ssl_cert              => '/etc/nginx/self-signed.crt',
+    ssl_key               => '/etc/nginx/self-signed.key',
     proxy                 => 'http://health-check',
     access_log            => '/var/log/nginx/puppet_access.log',
     error_log             => '/var/log/nginx/puppet_error.log'
@@ -27,7 +28,7 @@ node puppetclient {
     server => 'domain.com'
   }
 
-  nginx::resource::server { 'proxy-forward.domain.com' :
+  nginx::resource::server { 'proxy-forward.domain.com':
     ensure      => 'present',
     listen_port => 8000,
     proxy       => 'https://$http_host$request_uri',
@@ -40,12 +41,14 @@ node puppetclient {
     members => {
       'http://10.10.10.10' => {
         server       => '10.10.10.10',
+        weight => 3
       },
       'http://20.20.20.20' => {
         server       => '20.20.20.20',
-        max_fails    => 3,
+        max_fails    => 1,
         fail_timeout => '60s',
       }
     },
   }
+  
 }
